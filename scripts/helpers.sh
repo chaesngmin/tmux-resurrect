@@ -1,7 +1,7 @@
 if [ -d "$HOME/.tmux/resurrect" ]; then
-        default_resurrect_dir="$HOME/.tmux/resurrect"
+	default_resurrect_dir="$HOME/.tmux/resurrect"
 else
-        default_resurrect_dir="${XDG_DATA_HOME:-$HOME/.local/share}"/tmux/resurrect
+	default_resurrect_dir="${XDG_DATA_HOME:-$HOME/.local/share}"/tmux/resurrect
 fi
 resurrect_dir_option="@resurrect-dir"
 
@@ -50,7 +50,6 @@ display_message() {
 	tmux set-option -gq display-time "$saved_display_time"
 }
 
-
 supported_tmux_version_ok() {
 	$CURRENT_DIR/check_tmux_version.sh "$SUPPORTED_VERSION"
 }
@@ -82,14 +81,14 @@ is_session_grouped() {
 
 pane_contents_create_archive() {
 	tar cf - -C "$(resurrect_dir)/save/" ./pane_contents/ |
-		gzip > "$(pane_contents_archive_file)"
+		gzip >"$(pane_contents_archive_file)"
 }
 
 pane_content_files_restore_from_archive() {
 	local archive_file="$(pane_contents_archive_file)"
 	if [ -f "$archive_file" ]; then
 		mkdir -p "$(pane_contents_dir "restore")"
-		gzip -d < "$archive_file" |
+		gzip -d <"$archive_file" |
 			tar xf - -C "$(resurrect_dir)/restore/"
 	fi
 }
