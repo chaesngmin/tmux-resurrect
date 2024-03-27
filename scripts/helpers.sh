@@ -94,12 +94,54 @@ pane_content_files_restore_from_archive() {
 }
 
 # path helpers
+function get_parsed_resurrect_path() {
+	local path="$1"
+	shift
+	local env_vars=("$@")
+
+	for env_var in "${env_vars[@]}"; do
+		local env_value
+		env_value=$(eval echo "${env_var}")
+		path="${path//${env_var}/${env_value}}"
+	done
+	echo "${path}"
+}
+
+expand_envs_in_path() {
+	# expands all environment variables in path and additonal envs
+	local path
+	path="$1"
+
+	delimiter="/"
+	current_index=0
+	# envs=()
+
+	while [[ $current_index -lt ${#path} ]]; do
+		end_index=$((current_index + 1))
+		while [[ $end_index -lt ${#path} && "${path:$end_index:1}" != "$delimiter" ]]; do
+			end_index=$((end_index + 1))
+		done
+		env_var="${path:current_index:end_index-current_index}"
+		if [[ ${env_var:0:1} == "$" ]]; then
+			# envs+=("$env_var")
+			env_value=$(eval echo "${env_var}")
+			path="${path//${env_var}/${env_value}}"
+		fi
+		current_index=$end_index+1
+	done
+
+	additional_envs=()
+	additional_envs+=("~")
+	path="$(get_parsed_resurrect_path "$path" "${additional_envs[@]}")"
+	echo "${path}"
+}
 
 resurrect_dir() {
 	if [ -z "$_RESURRECT_DIR" ]; then
 		local path="$(get_tmux_option "$resurrect_dir_option" "$default_resurrect_dir")"
-		# expands tilde, $HOME and $HOSTNAME if used in @resurrect-dir
-		echo "$path" | sed "s/\\\\\\$/$/g; s,\$HOME,$HOME,g; s,\$HOSTNAME,$(hostname),g; s,\~,$HOME,g"
+		local expanded_path
+		expanded_path=$(expand_envs_in_path "$path")
+		echo "$expanded_path"
 	else
 		echo "$_RESURRECT_DIR"
 	fi
